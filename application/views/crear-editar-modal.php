@@ -1,5 +1,5 @@
 <div class="modal-dialog">
-    <form id="form-modal" method="POST" action="#" class="modal-content" onsubmit="return false;">
+    <form id="form-modal" method="POST" action="#" class="modal-content " novalidate>
         <input type="hidden" name="evento[id]" value="<?= isset($datos['id']) ? $datos['id'] : '0' ?>">
         <div class="modal-header">
             <h5 class="modal-title"><?= (isset($datos['id']) && intval($datos['id']) > 0) ? 'Editar' : 'Crear' ?></h5>

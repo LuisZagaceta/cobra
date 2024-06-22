@@ -10,6 +10,18 @@ class Welcome extends CI_Controller {
         $this->load->model('eventos');
     }
 
+    public function getEventos() {
+        $pagina_actual = (int) $this->input->get('page', TRUE);
+        $pagina_actual = ($pagina_actual > 0) ? $pagina_actual : 1;
+        $pagina_items = 10; //items por pagina
+        $limit = ($pagina_actual - 1) * $pagina_items;
+        $eventos = $this->eventos->getEventos($limit, $pagina_items);
+        $total = $this->eventos->getTotalEventos();
+
+        $this->output->set_content_type('application/json');
+        return $this->output->set_output(json_encode(['eventos' => $eventos, 'total' => $total, 'pag_actual' => $pagina_actual, 'pag_items' => $pagina_items]));
+    }
+
     public function index() {
         $this->load->view('welcome_message');
     }
@@ -40,8 +52,10 @@ class Welcome extends CI_Controller {
         return $this->output->set_output(json_encode(['success' => TRUE]));
     }
 
-    public function borrarUsuario($id = 0) {
-        $this->eventos->borrar(intval($id));
+    public function borrar($id = 0) {
+        $id = (int) $this->input->post('id', TRUE);
+
+        $this->eventos->borrar($id);
 
         $this->output->set_content_type('application/json');
         return $this->output->set_output(json_encode(['success' => TRUE]));

@@ -1,100 +1,129 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-?><!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-	<meta charset="utf-8">
-	<title>Welcome to CodeIgniter</title>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Bootstrap demo</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    </head>
+    <body>
 
-	<style type="text/css">
+        <div class="container">
+            <div class="row my-3">
+                <div class="col-6">
+                    <button type="button" class="btn btn-primary btn-crear-editar" data-id="0">Nuevo</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <table class="table table-striped" id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>T&iacute;tulo</th>
+                                <th>Descripci&oacute;n</th>
+                                <th>Fecha Inicio</th>
+                                <th>Fecha Fin</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-	::selection { background-color: #E13300; color: white; }
-	::-moz-selection { background-color: #E13300; color: white; }
+        <div id="modal-content" class="modal" tabindex="-1"></div>
 
-	body {
-		background-color: #fff;
-		margin: 40px;
-		font: 13px/20px normal Helvetica, Arial, sans-serif;
-		color: #4F5155;
-	}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
-	a {
-		color: #003399;
-		background-color: transparent;
-		font-weight: normal;
-		text-decoration: none;
-	}
+        <script>
+            $(function () {
+                let $dataTable = $('#dataTable');
 
-	a:hover {
-		color: #97310e;
-	}
+                $('body').on('click', '.btn-crear-editar', function (ev) {
+                    ev.preventDefault();
+                    let id = parseInt(this.dataset.id);
 
-	h1 {
-		color: #444;
-		background-color: transparent;
-		border-bottom: 1px solid #D0D0D0;
-		font-size: 19px;
-		font-weight: normal;
-		margin: 0 0 14px 0;
-		padding: 14px 15px 10px 15px;
-	}
+                    $.ajax({
+                        method: "GET",
+                        url: "./modal-crear-editar",
+                        data: {id: id}
+                    }).done(function (response) {
+                        $('#modal-content').empty().html(response);
+                        $('#modal-content').modal('toggle');
+                    });
+                });
 
-	code {
-		font-family: Consolas, Monaco, Courier New, Courier, monospace;
-		font-size: 12px;
-		background-color: #f9f9f9;
-		border: 1px solid #D0D0D0;
-		color: #002166;
-		display: block;
-		margin: 14px 0 14px 0;
-		padding: 12px 10px 12px 10px;
-	}
+                $('body').on('click', '.btn-eliminar', function (ev) {
+                    ev.preventDefault();
+                    let id = parseInt(this.dataset.id);
 
-	#body {
-		margin: 0 15px 0 15px;
-		min-height: 96px;
-	}
+                    $.ajax({
+                        method: "POST",
+                        url: "./eliminar",
+                        data: {id: id}
+                    }).done(function (response) {
+                        getData();
+                    });
+                });
 
-	p {
-		margin: 0 0 10px;
-		padding:0;
-	}
+                $('body').on('submit', '#form-modal', function () {
+                    let $form = $(this);
+                    let inputs = $form.serializeArray();
 
-	p.footer {
-		text-align: right;
-		font-size: 11px;
-		border-top: 1px solid #D0D0D0;
-		line-height: 32px;
-		padding: 0 10px 0 10px;
-		margin: 20px 0 0 0;
-	}
+                    $.ajax({
+                        method: "POST",
+                        url: "./modal-guardar",
+                        data: inputs
+                    }).done(function (response) {
+                        $('#modal-content').empty();
+                        $('#modal-content').modal('toggle');
 
-	#container {
-		margin: 10px;
-		border: 1px solid #D0D0D0;
-		box-shadow: 0 0 8px #D0D0D0;
-	}
-	</style>
-</head>
-<body>
+                        getData();
+                    });
+                });
 
-<div id="container">
-	<h1>Welcome to CodeIgniter!</h1>
+                function getData() {
+                    $.ajax({
+                        method: "GET",
+                        url: "./usuarios",
+                    }).done(function (response) {
+                        $dataTable.find('tbody').empty();
 
-	<div id="body">
-		<p>The page you are looking at is being generated dynamically by CodeIgniter.</p>
+                        setDataTable(response);
+                    });
+                }
 
-		<p>If you would like to edit this page you'll find it located at:</p>
-		<code>application/views/welcome_message.php</code>
+                function setDataTable(data) {
+                    if (data.length > 0) {
+                        for (var i in data) {
+                            var user = data[i];
+                            var $tr = $('<tr></tr>');
+                            var $td_id = $('<td>' + user['id'] + '</td>');
+                            var $td_nombres = $('<td>' + user['name'] + '</td>');
+                            var $td_telefono = $('<td>' + user['phone'] + '</td>');
+                            var $td_correo = $('<td>' + user['email'] + '</td>');
+                            var $td_acciones = $('<td></td>');
+                            var $btn_editar = $('<button class="btn btn-warning btn-crear-editar me-1" data-id="' + user['id'] + '">Editar</button>');
+                            var $btn_eliminar = $('<button class="btn btn-danger btn-eliminar" data-id="' + user['id'] + '">Borrar</button>');
 
-		<p>The corresponding controller for this page is found at:</p>
-		<code>application/controllers/Welcome.php</code>
+                            $td_id.appendTo($tr);
+                            $td_nombres.appendTo($tr);
+                            $td_telefono.appendTo($tr);
+                            $td_correo.appendTo($tr);
+                            $btn_editar.appendTo($td_acciones);
+                            $btn_eliminar.appendTo($td_acciones);
+                            $td_acciones.appendTo($tr);
 
-		<p>If you are exploring CodeIgniter for the very first time, you should start by reading the <a href="userguide3/">User Guide</a>.</p>
-	</div>
+                            $tr.appendTo($dataTable);
+                        }
+                    }
+                }
 
-	<p class="footer">Page rendered in <strong>{elapsed_time}</strong> seconds. <?php echo  (ENVIRONMENT === 'development') ?  'CodeIgniter Version <strong>' . CI_VERSION . '</strong>' : '' ?></p>
-</div>
-
-</body>
+                getData();
+            });
+        </script>
+    </body>
 </html>
